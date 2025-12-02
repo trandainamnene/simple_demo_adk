@@ -1,6 +1,8 @@
-## my_agent – Gemini ADK Python agent
+## Simple demo sử Google ADK + Exa MCP Intergration
 
-Đây là dự án mẫu dùng **Agent Development Kit (ADK) cho Python** để xây dựng một agent đơn giản trả lời giờ hiện tại của một thành phố, dựa trên hướng dẫn từ tài liệu ADK Python Quickstart (`https://google.github.io/adk-docs/get-started/python/`).
+Đây là demo nhỏ dùng **Agent Development Kit (ADK) cho Python** và **EXA MCP** để xây dựng một agent đơn giản dựa trên hướng dẫn từ tài liệu ADK Python Quickstart (`https://google.github.io/adk-docs/get-started/python/`).
+
+![Demo](demo.png)
 
 ### 1. Yêu cầu hệ thống
 
@@ -17,8 +19,8 @@ Từ thư mục gốc dự án:
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 
-# Cài ADK (nếu chưa cài)
-pip install google-adk python-dotenv
+# Cài ADK + MCP client
+pip install google-adk python-dotenv mcp
 ```
 
 ### 3. Cấu hình API key
@@ -29,23 +31,22 @@ Project sử dụng **Gemini API** nên cần API key:
 2. Tạo file `.env` trong thư mục gốc dự án với nội dung:
 
 ```env
-GOOGLE_API_KEY=YOUR_API_KEY_HERE
+GOOGLE_API_KEY = YOUR_API_KEY_HERE
+EXA_API_KEY = YOUR_EXA_KEY
+GOOGLE_CLOUD_LOCATION = YOUR_CLOUD_LOCATION
+EXA_API_KEY = YOUR_EXA_API_KEY
 ```
-
-Lưu ý:
-- File phải được lưu với **encoding UTF-8 (không BOM)**.
-- Không có dấu ngoặc kép bao quanh giá trị (không viết `"YOUR_API_KEY"`).
 
 ### 4. Cấu trúc dự án
 
 ```text
 my_agent/
-  agent.py       # code chính của agent (root_agent)
+  agent.py       # code chính của agent (root_agent + MCP toolset)
   __init__.py    # đánh dấu package Python
-  .env           # chứa GOOGLE_API_KEY (không commit lên GitHub)
+  .env           # chứa GOOGLE_API_KEY, EXA_API_KEY (không commit lên GitHub)
 ```
 
-Trong `agent.py`, agent được định nghĩa bằng `google.adk.agents.llm_agent.Agent` với tool mẫu `get_current_time`.
+Trong `agent.py`, agent sử dụng `google.adk.agents.llm_agent.Agent`, tool mẫu `get_current_time` và **MCP toolset** (nếu có `EXA_API_KEY`).
 
 ### 5. Chạy agent bằng CLI
 
@@ -75,24 +76,26 @@ Chọn agent `my_agent` ở góc trên bên trái và chat với agent.
 
 > Lưu ý: ADK Web chỉ dùng cho phát triển và debug, **không dùng cho production** (theo khuyến cáo trong tài liệu ADK).
 
-### 7. Ghi chú về lỗi thường gặp
+### 7. MCP integration (Model Context Protocol)
 
-- **`adk : The term 'adk' is not recognized...`**  
-  - Nguyên nhân: thư mục `Scripts` của Python (chứa `adk.exe`) chưa nằm trong `PATH`.  
-  - Cách khắc phục (tạm thời trong PowerShell):
-    ```powershell
-    $env:Path += ";$env:USERPROFILE\AppData\Roaming\Python\Python313\Scripts"
-    ```
+1. Cài đặt Node.js để sử dụng `ntig`.
+2. Thêm `EXA_API_KEY` (hoặc biến phù hợp với MCP server bạn dùng) vào `.env`.
+3. Khi agent khởi tạo, ADK sẽ dùng `npx -y exa-mcp-server` (hoặc lệnh bạn tùy chỉnh trong `agent.py`) để kết nối MCP server thông qua `McpToolset`.
+4. Nếu chưa đặt `EXA_API_KEY`, agent vẫn chạy, nhưng MCP toolset sẽ bị bỏ qua và có cảnh báo nhẹ.
 
-- **`'utf-8' codec can't decode byte 0xff in position 0...` khi đọc `.env`**  
-  - Nguyên nhân: file `.env` lưu với UTF-16 (có BOM 0xFF 0xFE).  
-  - Cách khắc phục: mở `.env` bằng editor, chọn **Save with encoding → UTF-8 (no BOM)**.
 
-- **`Missing key inputs argument! To use the Google AI API, provide (api_key)...`**  
-  - Nguyên nhân: biến môi trường `GOOGLE_API_KEY` không load được (sai tên key, sai encoding, có BOM).  
-  - Cách khắc phục:
-    - Đảm bảo `.env` có dòng:
-      ```env
-      GOOGLE_API_KEY=YOUR_API_KEY_HERE
-      ```
-    - Đảm bảo encoding UTF-8 không BOM.
+
+``Exa MCP intergration docs : `` [Google ADK – MCP guide](https://docs.exa.ai/integrations/google-adk#exa-mcp-integration)
+
+### 8. Cơ chế chọn và sử dụng tool trong agent này (Quan trọng)
+
+Agent trong project này được thiết kế sử dụng **hai nguồn tool khác nhau** tùy theo loại câu hỏi:
+
+| Loại câu hỏi                  | Tool được sử dụng                  | Lý do                                                                 |
+|-------------------------------|------------------------------------|-----------------------------------------------------------------------|
+| Câu hỏi về **thời gian, ngày giờ hiện tại** (ví dụ: “Bây giờ là mấy giờ?”, “Hôm nay thứ mấy?”) | **Mock tool** `get_current_time` (được định nghĩa trực tiếp trong `agent.py`) | Đảm bảo trả lời nhanh, chính xác 100% và không phụ thuộc vào mạng/MCP server. |
+| Tất cả các câu hỏi còn lại (tìm kiếm thông tin, tra cứu web, v.v.) | **Exa MCP toolset** (qua `McpToolset` kết nối với Exa MCP server) | Tận dụng khả năng tìm kiếm thời gian thực,  các tool mạnh mẽ của Exa. |
+
+
+
+
