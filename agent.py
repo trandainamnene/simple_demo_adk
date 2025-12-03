@@ -20,7 +20,6 @@ if load_dotenv:
 def get_current_time(city: str) -> dict:
     """Returns the current time in a specified city."""
     return {"status": "success", "city": city, "time": "10:30 AM"}
-    
 def _geocode_city(city: str, country_code: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Bước 1: Dùng Geocoding API để chuyển tên thành phố → tọa độ (lat, lon)

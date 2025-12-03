@@ -88,7 +88,7 @@ Chọn agent `my_agent` ở góc trên bên trái và chat với agent.
 
 ``Exa MCP intergration docs : `` [Google ADK – MCP guide](https://docs.exa.ai/integrations/google-adk#exa-mcp-integration)
 
-### 8. Cơ chế chọn và sử dụng tool trong agent này (Quan trọng)
+### 8. Cơ chế chọn và sử dụng tool trong agent này 
 
 Agent trong project này được thiết kế sử dụng **hai nguồn tool khác nhau** tùy theo loại câu hỏi:
 
