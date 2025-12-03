@@ -35,6 +35,7 @@ GOOGLE_API_KEY = YOUR_API_KEY_HERE
 EXA_API_KEY = YOUR_EXA_KEY
 GOOGLE_CLOUD_LOCATION = YOUR_CLOUD_LOCATION
 EXA_API_KEY = YOUR_EXA_API_KEY
+OPENWEATHER_API_KEY = YOUR_OPENWEATHER_API_KEY
 ```
 
 ### 4. Cấu trúc dự án
@@ -95,6 +96,7 @@ Agent trong project này được thiết kế sử dụng **hai nguồn tool kh
 |-------------------------------|------------------------------------|-----------------------------------------------------------------------|
 | Câu hỏi về **thời gian, ngày giờ hiện tại** (ví dụ: “Bây giờ là mấy giờ?”, “Hôm nay thứ mấy?”) | **Mock tool** `get_current_time` (được định nghĩa trực tiếp trong `agent.py`) | Đảm bảo trả lời nhanh, chính xác 100% và không phụ thuộc vào mạng/MCP server. |
 | Tất cả các câu hỏi còn lại (tìm kiếm thông tin, tra cứu web, v.v.) | **Exa MCP toolset** (qua `McpToolset` kết nối với Exa MCP server) | Tận dụng khả năng tìm kiếm thời gian thực,  các tool mạnh mẽ của Exa. |
+ Câu hỏi thông tin về thời tiết | **get_current_weather** (Dùng API của `OpenWeather`) | 
 
 
 
